@@ -1,15 +1,13 @@
-; boot.asm - Fixed Bootloader
 BITS 16
 ORG 0x7C00
 
 start:
-    ; Set up segments properly
     xor ax, ax
-    mov ds, ax      ; DS = 0x0000
-    mov es, ax      ; ES = 0x0000
-    mov ss, ax      ; SS = 0x0000
-    mov sp, 0x7C00  ; Stack grows downward from 0x0000:0x7C00
-    cld             ; Clear direction flag
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+    mov sp, 0x7C00
+    cld
 
     call clear_screen
 
@@ -50,7 +48,9 @@ start:
     cmp byte [drive_sel], 0x8F
     jle .scan_drives
 
-    mov [num_drives], bp
+    ; Fix: use bl (8-bit) to match num_drives size
+    mov bl, bp
+    mov [num_drives], bl
     xor bp, bp
 
 .wait_input:
@@ -83,7 +83,7 @@ start:
 .down:
     mov bl, [num_drives]
     dec bl
-    cmp bp, bl
+    cmp bp, bx  ; Fix: compare bp (16-bit) with bx, not bl
     jge .wait_input
     inc bp
     jmp .wait_input
@@ -96,18 +96,14 @@ start:
     mov ax, 0x8000
     mov es, ax
     xor bx, bx
-    mov ax, 0x0201     ; Read 1 sector (512 bytes)
-    mov ch, 0          ; Cylinder 0
-    mov cl, 2          ; Sector 2
-    mov dh, 0          ; Head 0
+    mov ax, 0x0201
+    mov ch, 0
+    mov cl, 2
+    mov dh, 0
     int 0x13
-    jc .launch         ; Retry on error
+    jc .launch
 
-    jmp 0x8000:0       ; Jump to loaded code
-
-; --------------------------
-; Utility Functions
-; --------------------------
+    jmp 0x8000:0
 
 print_hex:
     push ax
@@ -147,13 +143,9 @@ print_string:
 
 print_char:
     mov ah, 0x0E
-    xor bh, bh        ; Page 0
+    xor bh, bh
     int 0x10
     ret
-
-; --------------------------
-; Data Section
-; --------------------------
 
 welcome_msg: db "Welcome to DAS", 0
 menu_msg:    db "Choose an app to launch:", 0
@@ -162,6 +154,5 @@ space:       db " ", 0
 drive_sel:   db 0
 num_drives:  db 0
 
-; Pad to 510 bytes and add boot signature
 times 510 - ($ - $$) db 0
 dw 0xAA55   
