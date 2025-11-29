@@ -5,7 +5,7 @@ start:
     call clear_screen
     mov si, msg1
     call print_string
-    mov al, [0x7c05]  ; Read passed drive
+    mov al, [0x7c05]  ; Get passed drive
     call print_hex
     mov si, msg2
     call print_string
@@ -35,10 +35,14 @@ print_string:
     lodsb
     or al, al
     jz .done
-    mov ah, 0x0e
-    int 0x10
+    call print_char
     jmp print_string
 .done:
+    ret
+
+print_char:  ; Now defined
+    mov ah, 0x0e
+    int 0x10
     ret
 
 msg1: db "Drive ", 0
