@@ -96,7 +96,7 @@ start:
 print_hex:
     push ax
     mov ah, al
-    shr al, 4
+    shr ah, 4
     call .nibble
     mov al, ah
     and al, 0x0F
@@ -106,7 +106,7 @@ print_hex:
     das
     call print_char
     pop ax
-    ret
+    ret   
 
 clear_screen:
     mov ax, 0x0003
