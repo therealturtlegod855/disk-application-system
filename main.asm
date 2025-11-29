@@ -87,7 +87,7 @@ start:
 
 .launch:
     mov dl, 0x80
-    add dl, bp
+    cmp bp, [num_drives]   
     mov [0x8000], dl
 
     mov ax, 0x8000
