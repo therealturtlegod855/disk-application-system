@@ -1,3 +1,4 @@
+org 0x7c00
 ; main.asm - Fixed 32-bit Hello World OS
 
 ; Multiboot header
