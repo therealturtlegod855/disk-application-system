@@ -95,6 +95,7 @@ start:
 
 print_hex:
     push ax
+    push cx
     mov cl, 4
     mov ah, al
     shr ah, cl
@@ -106,8 +107,9 @@ print_hex:
     sbb al, 0x69
     das
     call print_char
+    pop cx
     pop ax
-    ret    
+    ret      
 
 clear_screen:
     mov ax, 0x0003
