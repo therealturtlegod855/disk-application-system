@@ -95,18 +95,19 @@ start:
 
 print_hex:
     push ax
+    mov cl, 4
     mov ah, al
-    shr ah, 4
+    shr ah, cl
     call .nibble
     mov al, ah
     and al, 0x0F
-    .nibble:
+.nibble:
     cmp al, 10
     sbb al, 0x69
     das
     call print_char
     pop ax
-    ret   
+    ret    
 
 clear_screen:
     mov ax, 0x0003
