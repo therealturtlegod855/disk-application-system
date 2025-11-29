@@ -14,7 +14,7 @@ start:
 print_hex:
     push ax
     mov ah, al
-    shr al, 4
+    shr ah, 4
     call .nibble
     mov al, ah
     and al, 0x0F
@@ -24,7 +24,7 @@ print_hex:
     das
     call print_char
     pop ax
-    ret
+    ret   
 
 clear_screen:
     mov ax, 0x0003
@@ -49,3 +49,4 @@ msg1: db "Drive ", 0
 msg2: db " selected", 13, 10, 0
 
 times 512 - ($ - $$) db 0   
+
