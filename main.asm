@@ -4,20 +4,18 @@ org 0x7c00
 start:
     call clear_screen
 
-    ; Print welcome
     mov dh, 0
     call set_cursor
     mov si, welcome_msg
     call print_string
 
-    ; Print menu
     mov dh, 12
     call set_cursor
     mov si, menu_msg
     call print_string
 
-    xor bp, bp          ; Selected drive index
-    mov word [drive_sel], 0x80
+    xor bp, bp
+    mov byte [drive_sel], 0x80
 
 .scan_drives:
     mov dl, [drive_sel]
@@ -27,7 +25,8 @@ start:
 
     push bp
     mov ax, 14
-    add ah, bp
+    add al, bp      ; Use AL (8-bit) instead of AH
+    mov dh, al
     call set_cursor
     mov si, space
     call print_string
@@ -41,9 +40,13 @@ start:
     cmp byte [drive_sel], 0x8F
     jle .scan_drives
 
+    mov [num_drives], bp
+    xor bp, bp
+
 .wait_input:
     mov ax, 14
-    add ah, [bp]
+    add al, bp
+    mov dh, al
     call set_cursor
     mov si, arrow
     call print_string
@@ -51,12 +54,12 @@ start:
     mov ah, 0
     int 0x16
 
-    cmp al, 13      ; Enter
+    cmp al, 13
     je .launch
 
-    cmp ah, 48      ; Up
+    cmp ah, 48
     je .up
-    cmp ah, 50      ; Down
+    cmp ah, 50
     je .down
     jmp .wait_input
 
@@ -75,27 +78,24 @@ start:
     jmp .wait_input
 
 .launch:
-    ; Calculate selected drive
     mov dl, 0x80
     add dl, bp
-    mov [0x8000], dl  ; Pass drive to kernel
+    mov [0x8000], dl
 
-    ; Load kernel (1 sector at 0x8000:0000)
     mov ax, 0x8000
     mov es, ax
     xor bx, bx
     mov ax, 0x0201
-    mov dh, 0
     mov ch, 0
     mov cl, 2
+    mov dh, 0
     int 0x13
-    jc .launch  ; Retry on error
+    jc .launch
 
     jmp 0x8000:0
 
 print_hex:
     push ax
-    push cx
     mov cl, 4
     mov ah, al
     shr ah, cl
@@ -107,9 +107,8 @@ print_hex:
     sbb al, 0x69
     das
     call print_char
-    pop cx
     pop ax
-    ret      
+    ret
 
 clear_screen:
     mov ax, 0x0003
@@ -142,7 +141,6 @@ arrow:       db ">", 0
 space:       db " ", 0
 drive_sel:   db 0
 num_drives:  db 0
-warranty_msg:db "NO WARRANTY - USE AT YOUR OWN RISK", 0
 
 times 510 - ($ - $$) db 0
 dw 0xaa55   
