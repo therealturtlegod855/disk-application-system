@@ -3,27 +3,30 @@ org 0x7c00
 
 start:
     call clear_screen
-    mov si, hello_msg
-    mov si, print_warning
+
+    ; Print welcome message at top (row 0)
+    mov dh, 0
+    call set_cursor
+    mov si, welcome_msg
     call print_string
 
-    ; Try to detect drives (0x80 = first HDD, 0x00 = first FDD)
+    ; Print drives starting at middle (row 12)
+    mov dh, 12
+    call set_cursor
+    mov si, detect_msg
+    call print_string
+    call print_newline
+
     mov dl, 0x80
-    call print_drive_check
-
-    mov dl, 0x00
-    call print_drive_check
-
-    jmp $
-
-print_drive_check:
+.check_drive:
     mov ah, 0x08      ; Get drive parameters
     int 0x13
-    jc .not_found     ; If carry flag, drive not present
+    jc .not_found
 
+    push dx
+    call print_newline
     mov al, ' '
     call print_char
-
     mov al, 'D'
     call print_char
     mov al, 'r'
@@ -36,38 +39,48 @@ print_drive_check:
     call print_char
     mov al, ' '
     call print_char
-
     mov al, dl
-    cmp dl, 0x80
-    je .hdd
-    jmp .fdd
-
-.hdd:
-    mov al, 'H'
-    call print_char
-    mov al, 'D'
-    call print_char
-    mov al, 'D'
-    call print_char
-    jmp .done
-
-.fdd:
-    mov al, 'F'
-    call print_char
-    mov al, 'D'
-    call print_char
-    mov al, 'D'
-    call print_char
-
-.done:
+    call print_hex
     call print_newline
-    ret
+    pop dx
 
 .not_found:
+    inc dl
+    cmp dl, 0x8F
+    jle .check_drive
+
+    ; Print no warranty at bottom (row 24)
+    mov dh, 24
+    call set_cursor
+    mov si, warranty_msg
+    call print_string
+
+    jmp $
+
+; Print AL as two hex digits
+print_hex:
+    push ax
+    mov ah, al
+    shr al, 4
+    call .nibble
+    mov al, ah
+    and al, 0x0F
+    .nibble:
+    cmp al, 10
+    sbb al, 0x69
+    das
+    call print_char
+    pop ax
     ret
 
 clear_screen:
     mov ax, 0x0003
+    int 0x10
+    ret
+
+set_cursor:
+    xor bx, bx
+    mov ah, 0x02
     int 0x10
     ret
 
@@ -92,8 +105,9 @@ print_newline:
     call print_char
     ret
 
-hello_msg: db "Welcome to DAS!", 0
-print_warning: db "Disk Application System provides absolutely no warrenty implied or stated", 0
+welcome_msg:   db "Welcome to DAS", 0
+detect_msg:    db "Detecting storage devices...", 0
+warranty_msg:  db "NO WARRANTY - USE AT YOUR OWN RISK", 0
 
 times 510 - ($ - $$) db 0
 dw 0xaa55   
