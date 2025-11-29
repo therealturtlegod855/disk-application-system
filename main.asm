@@ -1,7 +1,16 @@
-bits 16
-org 0x7c00
+; boot.asm - Fixed Bootloader
+BITS 16
+ORG 0x7C00
 
 start:
+    ; Set up segments properly
+    xor ax, ax
+    mov ds, ax      ; DS = 0x0000
+    mov es, ax      ; ES = 0x0000
+    mov ss, ax      ; SS = 0x0000
+    mov sp, 0x7C00  ; Stack grows downward from 0x0000:0x7C00
+    cld             ; Clear direction flag
+
     call clear_screen
 
     mov dh, 0
@@ -87,14 +96,18 @@ start:
     mov ax, 0x8000
     mov es, ax
     xor bx, bx
-    mov ax, 0x0201
-    mov ch, 0
-    mov cl, 2
-    mov dh, 0
+    mov ax, 0x0201     ; Read 1 sector (512 bytes)
+    mov ch, 0          ; Cylinder 0
+    mov cl, 2          ; Sector 2
+    mov dh, 0          ; Head 0
     int 0x13
-    jc .launch
+    jc .launch         ; Retry on error
 
-    jmp 0x8000:0
+    jmp 0x8000:0       ; Jump to loaded code
+
+; --------------------------
+; Utility Functions
+; --------------------------
 
 print_hex:
     push ax
@@ -133,9 +146,14 @@ print_string:
     ret
 
 print_char:
-    mov ah, 0x0e
+    mov ah, 0x0E
+    xor bh, bh        ; Page 0
     int 0x10
     ret
+
+; --------------------------
+; Data Section
+; --------------------------
 
 welcome_msg: db "Welcome to DAS", 0
 menu_msg:    db "Choose an app to launch:", 0
@@ -144,5 +162,6 @@ space:       db " ", 0
 drive_sel:   db 0
 num_drives:  db 0
 
+; Pad to 510 bytes and add boot signature
 times 510 - ($ - $$) db 0
-dw 0xaa55   
+dw 0xAA55   
