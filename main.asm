@@ -4,6 +4,7 @@ org 0x7c00
 start:
     call clear_screen
     mov si, hello_msg
+    mov si, print_warning
     call print_string
 
     ; Try to detect drives (0x80 = first HDD, 0x00 = first FDD)
