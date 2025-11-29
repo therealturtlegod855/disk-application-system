@@ -1,0 +1,43 @@
+# Compiled binaries and object files
+*.o
+*.obj
+*.out
+*.bin
+*.elf
+*.exe
+
+# Assembler/linker output
+*.lst
+*.map
+*.sym
+*.hex
+*.srec
+
+# Debug and profiling files
+*.dSYM/
+*.pdb
+*.idb
+
+# Build directories (if used)
+build/
+dist/
+obj/
+
+# Editor and IDE swap/backup files
+*~
+.*.swp
+.swp
+.vim/
+.vscode/
+.idea/
+
+# OS-specific files
+Thumbs.db
+.DS_Store
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Temporary files
+*.tmp
+*.log   
