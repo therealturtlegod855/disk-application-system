@@ -17,6 +17,7 @@
 *.dSYM/
 *.pdb
 *.idb
+*.sh
 
 # Build directories (if used)
 build/
