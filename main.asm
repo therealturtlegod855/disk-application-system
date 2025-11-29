@@ -25,7 +25,7 @@ start:
 
     push bp
     mov ax, 14
-    add al, bp      ; Use AL (8-bit) instead of AH
+    add al, bp
     mov dh, al
     call set_cursor
     mov si, space
