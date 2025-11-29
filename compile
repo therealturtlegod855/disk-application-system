@@ -1,0 +1,4 @@
+nasm -f bin main.asm -o boot.bin
+nasm -f bin kernel.asm -o kernel.bin
+cat boot.bin kernel.bin > os.bin
+qemu-system-i386 -fda os.bin -hda fat:rw:./diskimg   
