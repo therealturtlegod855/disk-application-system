@@ -54,7 +54,7 @@ start:
 
 .wait_input:
     mov al, 14
-    mov bl, bp
+    mov [num_drives], bl   
     add al, bl
     mov dh, al
     call set_cursor
