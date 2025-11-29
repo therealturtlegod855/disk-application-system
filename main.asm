@@ -4,60 +4,95 @@ org 0x7c00
 start:
     call clear_screen
 
-    ; Print welcome message at top (row 0)
+    ; Print welcome
     mov dh, 0
     call set_cursor
     mov si, welcome_msg
     call print_string
 
-    ; Print drives starting at middle (row 12)
+    ; Print menu
     mov dh, 12
     call set_cursor
-    mov si, detect_msg
+    mov si, menu_msg
     call print_string
-    call print_newline
 
-    mov dl, 0x80
-.check_drive:
-    mov ah, 0x08      ; Get drive parameters
+    xor bp, bp          ; Selected drive index
+    mov word [drive_sel], 0x80
+
+.scan_drives:
+    mov dl, [drive_sel]
+    mov ah, 0x08
     int 0x13
-    jc .not_found
+    jc .next
 
-    push dx
-    call print_newline
-    mov al, ' '
-    call print_char
-    mov al, 'D'
-    call print_char
-    mov al, 'r'
-    call print_char
-    mov al, 'i'
-    call print_char
-    mov al, 'v'
-    call print_char
-    mov al, 'e'
-    call print_char
-    mov al, ' '
-    call print_char
+    push bp
+    mov ax, 14
+    add ah, bp
+    call set_cursor
+    mov si, space
+    call print_string
     mov al, dl
     call print_hex
-    call print_newline
-    pop dx
+    pop bp
+    inc bp
 
-.not_found:
-    inc dl
-    cmp dl, 0x8F
-    jle .check_drive
+.next:
+    inc byte [drive_sel]
+    cmp byte [drive_sel], 0x8F
+    jle .scan_drives
 
-    ; Print no warranty at bottom (row 24)
-    mov dh, 24
+.wait_input:
+    mov ax, 14
+    add ah, [bp]
     call set_cursor
-    mov si, warranty_msg
+    mov si, arrow
     call print_string
 
-    jmp $
+    mov ah, 0
+    int 0x16
 
-; Print AL as two hex digits
+    cmp al, 13      ; Enter
+    je .launch
+
+    cmp ah, 48      ; Up
+    je .up
+    cmp ah, 50      ; Down
+    je .down
+    jmp .wait_input
+
+.up:
+    cmp bp, 0
+    jle .wait_input
+    dec bp
+    jmp .wait_input
+
+.down:
+    mov bl, [num_drives]
+    dec bl
+    cmp bp, bx
+    jge .wait_input
+    inc bp
+    jmp .wait_input
+
+.launch:
+    ; Calculate selected drive
+    mov dl, 0x80
+    add dl, bp
+    mov [0x8000], dl  ; Pass drive to kernel
+
+    ; Load kernel (1 sector at 0x8000:0000)
+    mov ax, 0x8000
+    mov es, ax
+    xor bx, bx
+    mov ax, 0x0201
+    mov dh, 0
+    mov ch, 0
+    mov cl, 2
+    int 0x13
+    jc .launch  ; Retry on error
+
+    jmp 0x8000:0
+
 print_hex:
     push ax
     mov ah, al
@@ -98,16 +133,13 @@ print_char:
     int 0x10
     ret
 
-print_newline:
-    mov al, 0x0d
-    call print_char
-    mov al, 0x0a
-    call print_char
-    ret
-
-welcome_msg:   db "Welcome to DAS", 0
-detect_msg:    db "Detecting storage devices...", 0
-warranty_msg:  db "NO WARRANTY - USE AT YOUR OWN RISK", 0
+welcome_msg: db "Welcome to DAS", 0
+menu_msg:    db "Choose an app to launch:", 0
+arrow:       db ">", 0
+space:       db " ", 0
+drive_sel:   db 0
+num_drives:  db 0
+warranty_msg:db "NO WARRANTY - USE AT YOUR OWN RISK", 0
 
 times 510 - ($ - $$) db 0
 dw 0xaa55   
