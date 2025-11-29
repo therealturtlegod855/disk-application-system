@@ -49,8 +49,7 @@ start:
     jle .scan_drives
 
     ; Fix: use bl (8-bit) to match num_drives size
-    mov bl, bp
-    mov [num_drives], bl
+    mov byte [num_drives], bl
     xor bp, bp
 
 .wait_input:
@@ -75,16 +74,14 @@ start:
     jmp .wait_input
 
 .up:
-    cmp bp, 0
-    jle .wait_input
+    test bp, bp
+    jz .wait_input
     dec bp
     jmp .wait_input
 
 .down:
-    mov bl, [num_drives]
-    dec bl
-    cmp bp, bx  ; Fix: compare bp (16-bit) with bx, not bl
-    jge .wait_input
+    cmp bp, [num_drives]
+    jnc .wait_input
     inc bp
     jmp .wait_input
 
