@@ -32,7 +32,8 @@ start:
 
     push bp
     mov al, 14
-    mov bl, bpl   
+    mov bx, bp
+    mov bl, bh     
     mov [num_drives], bl   
     add al, bl
     mov dh, al
