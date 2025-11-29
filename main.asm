@@ -24,8 +24,9 @@ start:
     jc .next
 
     push bp
-    mov ax, 14
-    add al, bp
+    mov al, 14
+    mov bl, bp
+    add al, bl
     mov dh, al
     call set_cursor
     mov si, space
@@ -44,8 +45,9 @@ start:
     xor bp, bp
 
 .wait_input:
-    mov ax, 14
-    add al, bp
+    mov al, 14
+    mov bl, bp
+    add al, bl
     mov dh, al
     call set_cursor
     mov si, arrow
@@ -72,7 +74,7 @@ start:
 .down:
     mov bl, [num_drives]
     dec bl
-    cmp bp, bx
+    cmp bp, bl
     jge .wait_input
     inc bp
     jmp .wait_input
